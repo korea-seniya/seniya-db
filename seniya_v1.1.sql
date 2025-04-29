@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `trainer_applications` (
 -- 트레이너 프로필
 CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     trainer_profile_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL UNIQUE,
+    user_id INT NOT NULL,
     specialty ENUM(
         'SLEEP',
         'REHABILITATION',
