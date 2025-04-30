@@ -42,26 +42,6 @@ CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     Foreign Key (user_id) REFERENCES users (user_id)
 );
 
--- 건강기록
-CREATE TABLE IF NOT EXISTS `health_data` (
-    health_data_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    height FLOAT NOT NULL,
-    weight FLOAT NOT NULL,
-    body_fat_percentage FLOAT,
-    blood_pressure ENUM('LOW', 'NORMAL', 'HIGH'),
-    disease_id INT,
-    medication_id INT,
-    allergy_id INT,
-    smoking BOOLEAN NOT NULL DEFAULT FALSE,
-    drinking BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (disease_id) REFERENCES diseases (disease_id),
-    FOREIGN KEY (medication_id) REFERENCES medications (medication_id),
-    FOREIGN KEY (allergy_id) REFERENCES allergies (allergy_id)
-);
-
 -- 질병
 CREATE TABLE IF NOT EXISTS `diseases` (
     disease_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -88,6 +68,26 @@ CREATE TABLE IF NOT EXISTS `allergies` (
     allergy_name VARCHAR(100) NOT NULL,
     reaction VARCHAR(100) NOT NULL
 );
+-- 건강기록
+CREATE TABLE IF NOT EXISTS `health_data` (
+    health_data_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    height FLOAT NOT NULL,
+    weight FLOAT NOT NULL,
+    body_fat_percentage FLOAT,
+    blood_pressure ENUM('LOW', 'NORMAL', 'HIGH'),
+    disease_id INT,
+    medication_id INT,
+    allergy_id INT,
+    smoking BOOLEAN NOT NULL DEFAULT FALSE,
+    drinking BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (disease_id) REFERENCES diseases (disease_id),
+    FOREIGN KEY (medication_id) REFERENCES medications (medication_id),
+    FOREIGN KEY (allergy_id) REFERENCES allergies (allergy_id)
+);
+
 
 -- 수업 관리
 CREATE TABLE IF NOT EXISTS `cares` (
@@ -150,3 +150,5 @@ CREATE TABLE IF NOT EXISTS `posts` (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
+
+SHOW TABLES;
