@@ -9,9 +9,21 @@ CREATE TABLE IF NOT EXISTS `users` (
     password VARCHAR(255) NOT NULL,
     name VARCHAR(20) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    role ENUM('TRAINER', 'USER', 'ADMIN') NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS `roles` (
+    role_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS `user_roles` (
+    user_id int,
+    role_id int,
+    PRIMARY KEY (user_id, role_id),
+    CONSTRAINT fk_user Foreign Key (user_id) REFERENCES users (user_id) on Delete CASCADE,
+    CONSTRAINT fk_role Foreign Key (role_id) REFERENCES roles (role_id) on Delete CASCADE
 );
 
 -- 트레이너 권한 요청 (오프라인 면접 후 권한 부여)
@@ -88,44 +100,45 @@ CREATE TABLE IF NOT EXISTS `health_data` (
     FOREIGN KEY (allergy_id) REFERENCES allergies (allergy_id)
 );
 
+-- -- 수업 관리
+-- CREATE TABLE IF NOT EXISTS `cares` (
+--     care_id INT PRIMARY KEY AUTO_INCREMENT,
+--     user_id INT NOT NULL,
+--     trainer_profile_id INT NOT NULL,
+--     attendance_rate FLOAT NOT NULL DEFAULT 0,
+--     care_name VARCHAR(100) NOT NULL,
+--     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+--     FOREIGN KEY (trainer_profile_id) REFERENCES trainer_profiles (trainer_profile_id)
+-- );
+-- drop table cares;
+-- -- 수업 종류
+-- CREATE TABLE IF NOT EXISTS `care_categories` (
+--     care_category_id INT PRIMARY KEY AUTO_INCREMENT,
+--     care_sort VARCHAR(100) NOT NULL,
+--     care_description VARCHAR(100) NOT NULL
+-- );
 
--- 수업 관리
-CREATE TABLE IF NOT EXISTS `cares` (
-    care_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    trainer_profile_id INT NOT NULL,
-    attendance_rate FLOAT NOT NULL DEFAULT 0,
-    care_name VARCHAR(100) NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (trainer_profile_id) REFERENCES trainer_profiles (trainer_profile_id)
-);
-
--- 수업 종류
-CREATE TABLE IF NOT EXISTS `care_categories` (
-    care_category_id INT PRIMARY KEY AUTO_INCREMENT,
-    care_sort VARCHAR(100) NOT NULL,
-    care_description VARCHAR(100) NOT NULL
-);
-
--- 수업 세부사항 테이블
-CREATE TABLE IF NOT EXISTS `care_details` (
-    care_detail_id INT PRIMARY KEY AUTO_INCREMENT,
-    care_id INT NOT NULL,
-    care_category_id INT NOT NULL,
-    attendance BOOLEAN DEFAULT false NOT NULL,
-    day_of_week ENUM(
-        'MON',
-        'TUE',
-        'WED',
-        'THU',
-        'FRI'
-    ) NOT NULL,
-    class_hour TIME NOT NULL,
-    class_start_time DATETIME NOT NULL,
-    class_end_time DATETIME NOT NULL,
-    Foreign Key (care_id) REFERENCES cares (care_id),
-    Foreign Key (care_category_id) REFERENCES care_categories (care_category_id)
-);
+-- drop table care_categories;
+-- -- 수업 세부사항 테이블
+-- CREATE TABLE IF NOT EXISTS `care_details` (
+--     care_detail_id INT PRIMARY KEY AUTO_INCREMENT,
+--     care_id INT NOT NULL,
+--     care_category_id INT NOT NULL,
+--     attendance BOOLEAN DEFAULT false NOT NULL,
+--     day_of_week ENUM(
+--         'MON',
+--         'TUE',
+--         'WED',
+--         'THU',
+--         'FRI'
+--     ) NOT NULL,
+--     class_hour TIME NOT NULL,
+--     class_start_time DATETIME NOT NULL,
+--     class_end_time DATETIME NOT NULL,
+--     Foreign Key (care_id) REFERENCES cares (care_id),
+--     Foreign Key (care_category_id) REFERENCES care_categories (care_category_id)
+-- );
+-- drop table care_details;
 
 -- 문의
 CREATE TABLE IF NOT EXISTS `inquiries` (
@@ -149,6 +162,52 @@ CREATE TABLE IF NOT EXISTS `posts` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+);
+
+-- 수업 개설
+CREATE TABLE IF NOT EXISTS `class_open_applications` (
+    application_id INT PRIMARY KEY AUTO_INCREMENT,
+    trainer_profile_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    day_of_week ENUM(
+        'MON',
+        'TUE',
+        'WED',
+        'THU',
+        'FRI'
+    ) NOT NULL,
+    class_start_time TIME NOT NULL,
+    class_end_time TIME NOT NULL,
+    approval_status ENUM('APPROVE', 'REJECT', 'HOLD') DEFAULT 'HOLD',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    subject_type ENUM(
+        'SLEEP',
+        'REHABILITATION',
+        'EXERCISE',
+        'PSYCHOLOGY'
+    ) NOT NULL,
+    FOREIGN KEY (trainer_profile_id) REFERENCES trainer_profiles (trainer_profile_id) ON DELETE CASCADE
+);
+
+-- 학원 전체 시간표
+CREATE TABLE IF NOT EXISTS `timetables` (
+    timetable_id INT PRIMARY KEY AUTO_INCREMENT,
+    application_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    classroom VARCHAR(100) NOT NULL,
+    FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
+);
+
+-- 수업 신청
+CREATE TABLE IF NOT EXISTS `class_applications` (
+    class_application_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    application_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
 );
 
 SHOW TABLES;
