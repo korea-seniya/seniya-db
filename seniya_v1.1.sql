@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     password VARCHAR(255) NOT NULL,
     name VARCHAR(20) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
+    coupon INT NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -38,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `trainer_applications` (
 
 -- 트레이너 프로필
 CREATE TABLE IF NOT EXISTS `trainer_profiles` (
-    trainer_profile_id INT PRIMARY KEY AUTO_INCREMENT,
+    trainer_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     specialty ENUM(
         'SLEEP',
@@ -94,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `health_data` (
     smoking BOOLEAN NOT NULL DEFAULT FALSE,
     drinking BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (disease_id) REFERENCES diseases (disease_id),
     FOREIGN KEY (medication_id) REFERENCES medications (medication_id),
@@ -144,13 +146,13 @@ CREATE TABLE IF NOT EXISTS `health_data` (
 CREATE TABLE IF NOT EXISTS `inquiries` (
     inquiry_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    trainer_profile_id INT NOT NULL,
+    trainer_id INT NOT NULL,
     inquiry_content TEXT NOT NULL,
     inquiry_response TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     responsed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (trainer_profile_id) REFERENCES trainer_profiles (trainer_profile_id)
+    FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id)
 );
 
 -- 게시글
@@ -167,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
 -- 수업 개설
 CREATE TABLE IF NOT EXISTS `class_open_applications` (
     application_id INT PRIMARY KEY AUTO_INCREMENT,
-    trainer_profile_id INT NOT NULL,
+    trainer_id INT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     day_of_week ENUM(
@@ -187,7 +189,7 @@ CREATE TABLE IF NOT EXISTS `class_open_applications` (
         'EXERCISE',
         'PSYCHOLOGY'
     ) NOT NULL,
-    FOREIGN KEY (trainer_profile_id) REFERENCES trainer_profiles (trainer_profile_id) ON DELETE CASCADE
+    FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id) ON DELETE CASCADE
 );
 
 -- 학원 전체 시간표
