@@ -166,6 +166,17 @@ CREATE TABLE IF NOT EXISTS `posts` (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS `comments` (
+    comment_id INT PRIMARY KEY AUTO_INCREMENT,
+    post_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comment_content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Foreign Key (post_id) REFERENCES posts(post_id),
+    Foreign Key (user_id) REFERENCES users(user_id)
+);
+
 -- 수업 개설
 CREATE TABLE IF NOT EXISTS `class_open_applications` (
     application_id INT PRIMARY KEY AUTO_INCREMENT,
