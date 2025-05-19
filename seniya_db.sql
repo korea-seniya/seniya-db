@@ -2,57 +2,68 @@ CREATE DATABASE IF NOT EXISTS `seniya_db`;
 
 USE `seniya_db`;
 
+### 시니야 헬스케어 통합 관리 시스템 ###
+# : 고령자 건강관리 및 트레이너 기반 교육 서비스 플랫폼 (LMS: Learning Management System)
+
+# Seniya 플랫폼은 고령자를 위한 건강관리 통합 LMS로
+# , 트레이너가 제공하는 수업과 건강 정보를 기반으로 개인 맞춤형 학습 및 관리를 지원하는 서비스
+
 -- 사용자
 CREATE TABLE IF NOT EXISTS `users` (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_id INT NOT NULL,
     username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(20) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    coupon INT NOT NULL DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    # 사용자 연락처 추가
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    # 필드 설명 필요 (수강권 - 수정 필요 / 정규화) + 구구절절 필요
+    coupon INT NOT NULL DEFAULT 0, 
+    # 사용자가 개설된 수업을 보고 신청할 때 사용하는 쿠폰
+    # EX) 2025.6.12 수면치료 1번 강의장 - 트레이너 전창현
+    #           신청 -> 쿠폰 1개 차감
+    # ** 수업 종류에 관계없이 사용 가능 **
+    # ** 결제 시스템 도입 **
+    # ** 회원만 사용 가능 **
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, # 수정되지않는 데이터
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    Foreign Key (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
 );
 
+# 사용자 권한
 CREATE TABLE IF NOT EXISTS `roles` (
     role_id INT PRIMARY KEY AUTO_INCREMENT,
     role_name VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS `user_roles` (
-    user_id int,
-    role_id int,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_user Foreign Key (user_id) REFERENCES users (user_id) on Delete CASCADE,
-    CONSTRAINT fk_role Foreign Key (role_id) REFERENCES roles (role_id) on Delete CASCADE
-);
-
--- 트레이너 권한 요청 (오프라인 면접 후 권한 부여)
+-- 트레이너 권한 신청
 CREATE TABLE IF NOT EXISTS `trainer_applications` (
     application_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     apply_date DATE,
-    approval_status ENUM('APPROVE', 'REJECT', 'HOLD') DEFAULT 'HOLD',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    approval_status ENUM('APPROVE', 'REJECT', 'HOLD', 'QUIT') DEFAULT 'HOLD',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    
+    # 퇴사자의 경우
 );
 
 -- 트레이너 프로필
 CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     trainer_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    specialty ENUM(
-        'SLEEP',
-        'REHABILITATION',
-        'EXERCISE',
-        'PSYCHOLOGY'
-    ) NOT NULL, -- 수면, 재활, 운동, 심리
+    specialty ENUM('SLEEP', 'REHABILITATION', 'EXERCISE', 'PSYCHOLOGY') NOT NULL, 
+    -- 수면, 재활, 운동, 심리
     certificate TEXT,
+    certification_date DATE, -- 자격증 취득일
+    experience_years INT, -- 경력(연차) 추가
     profile_image VARCHAR(255),
     description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    Foreign Key (user_id) REFERENCES users (user_id)
+    Foreign Key (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
 -- 질병
@@ -60,11 +71,7 @@ CREATE TABLE IF NOT EXISTS `diseases` (
     disease_id INT PRIMARY KEY AUTO_INCREMENT,
     disease_name VARCHAR(100) NOT NULL,
     disease_date DATE NOT NULL,
-    disease_status ENUM(
-        'ACTIVE',
-        'RECOVERED',
-        'CHRONIC'
-    ) NOT NULL
+    disease_status ENUM('ACTIVE', 'RECOVERED', 'CHRONIC') NOT NULL
 );
 
 -- 복용중인 약
@@ -94,53 +101,13 @@ CREATE TABLE IF NOT EXISTS `health_data` (
     allergy_id INT,
     smoking BOOLEAN NOT NULL DEFAULT FALSE,
     drinking BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (disease_id) REFERENCES diseases (disease_id),
     FOREIGN KEY (medication_id) REFERENCES medications (medication_id),
     FOREIGN KEY (allergy_id) REFERENCES allergies (allergy_id)
 );
-
--- -- 수업 관리
--- CREATE TABLE IF NOT EXISTS `cares` (
---     care_id INT PRIMARY KEY AUTO_INCREMENT,
---     user_id INT NOT NULL,
---     trainer_profile_id INT NOT NULL,
---     attendance_rate FLOAT NOT NULL DEFAULT 0,
---     care_name VARCHAR(100) NOT NULL,
---     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
---     FOREIGN KEY (trainer_profile_id) REFERENCES trainer_profiles (trainer_profile_id)
--- );
--- drop table cares;
--- -- 수업 종류
--- CREATE TABLE IF NOT EXISTS `care_categories` (
---     care_category_id INT PRIMARY KEY AUTO_INCREMENT,
---     care_sort VARCHAR(100) NOT NULL,
---     care_description VARCHAR(100) NOT NULL
--- );
-
--- drop table care_categories;
--- -- 수업 세부사항 테이블
--- CREATE TABLE IF NOT EXISTS `care_details` (
---     care_detail_id INT PRIMARY KEY AUTO_INCREMENT,
---     care_id INT NOT NULL,
---     care_category_id INT NOT NULL,
---     attendance BOOLEAN DEFAULT false NOT NULL,
---     day_of_week ENUM(
---         'MON',
---         'TUE',
---         'WED',
---         'THU',
---         'FRI'
---     ) NOT NULL,
---     class_hour TIME NOT NULL,
---     class_start_time DATETIME NOT NULL,
---     class_end_time DATETIME NOT NULL,
---     Foreign Key (care_id) REFERENCES cares (care_id),
---     Foreign Key (care_category_id) REFERENCES care_categories (care_category_id)
--- );
--- drop table care_details;
 
 -- 문의
 CREATE TABLE IF NOT EXISTS `inquiries` (
@@ -149,8 +116,10 @@ CREATE TABLE IF NOT EXISTS `inquiries` (
     trainer_id INT NOT NULL,
     inquiry_content TEXT NOT NULL,
     inquiry_response TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    # 수정 일시
     responsed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id)
 );
@@ -162,17 +131,18 @@ CREATE TABLE IF NOT EXISTS `posts` (
     title VARCHAR(100) NOT NULL,
     post_content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
+-- 문의 답변
 CREATE TABLE IF NOT EXISTS `comments` (
     comment_id INT PRIMARY KEY AUTO_INCREMENT,
     post_id INT NOT NULL,
     user_id INT NOT NULL,
     comment_content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Foreign Key (post_id) REFERENCES posts(post_id),
     Foreign Key (user_id) REFERENCES users(user_id)
 );
@@ -207,13 +177,13 @@ CREATE TABLE IF NOT EXISTS `class_open_applications` (
 CREATE TABLE IF NOT EXISTS `timetables` (
     timetable_id INT PRIMARY KEY AUTO_INCREMENT,
     application_id INT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     classroom VARCHAR(100) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
 );
 
--- 수업 신청
+-- 회원의 수업 신청
 CREATE TABLE IF NOT EXISTS `class_applications` (
     class_application_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
