@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `trainer_applications` (
     application_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     apply_date DATE,
-    approval_status ENUM('APPROVE', 'REJECT', 'HOLD', 'QUIT') DEFAULT 'HOLD',
+    approval_status ENUM('APPROVE', 'REJECT', 'PENDING', 'QUIT') DEFAULT 'PENDING',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
     post_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     title VARCHAR(100) NOT NULL,
-    post_content TEXT NOT NULL,
+    content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
     comment_id INT PRIMARY KEY AUTO_INCREMENT,
     post_id INT NOT NULL,
     user_id INT NOT NULL,
-    comment_content TEXT NOT NULL,
+    content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Foreign Key (post_id) REFERENCES posts(post_id),
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `class_open_applications` (
     ) NOT NULL,
     class_start_time TIME NOT NULL,
     class_end_time TIME NOT NULL,
-    approval_status ENUM('APPROVE', 'REJECT', 'HOLD') DEFAULT 'HOLD',
+    approval_status ENUM('APPROVE', 'REJECT', 'PENDING') DEFAULT 'PENDING',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     subject_type ENUM(
         'SLEEP',
