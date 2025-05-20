@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS `seniya_db`CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+CREATE DATABASE IF NOT EXISTS `seniya_db` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+;
 
 USE `seniya_db`;
 
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     # 사용자 연락처 추가
     phone VARCHAR(20) NOT NULL UNIQUE,
     # 필드 설명 필요 (수강권 - 수정 필요 / 정규화) + 구구절절 필요
-    coupon INT NOT NULL DEFAULT 0, 
+    class_ticket INT NOT NULL DEFAULT 0, 
     # 사용자가 개설된 수업을 보고 신청할 때 사용하는 쿠폰
     # EX) 2025.6.12 수면치료 1번 강의장 - 트레이너 전창현
     #           신청 -> 쿠폰 1개 차감
@@ -30,15 +30,44 @@ CREATE TABLE IF NOT EXISTS `users` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP, # 수정되지않는 데이터
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Foreign Key (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+)CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE user_class_passes (
+    pass_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    coupon_type ENUM('REGULAR', 'EVENT'),
+    -- 발급일 및 만료일
+    issued_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME,
+    used BOOLEAN DEFAULT FALSE,
+    -- 사용 여부 (해당 값이 TRUE가 될 때마다 users.class_ticket이 감소되는 트리거 설정)
+    used_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- ---------------------------------------------
+DELIMITER $$
+
+CREATE TRIGGER reduce_class_ticket
+AFTER UPDATE ON user_class_passes
+FOR EACH ROW
+BEGIN
+    IF OLD.used = FALSE AND NEW.used = TRUE THEN
+        UPDATE users
+        SET class_ticket = class_ticket - 1
+        WHERE user_id = NEW.user_id;
+    END IF;
+END $$
+
+DELIMITER;
+-- ---------------------------------------------
 
 # 사용자 권한
 CREATE TABLE IF NOT EXISTS `roles` (
     role_id INT PRIMARY KEY AUTO_INCREMENT,
     role_name VARCHAR(255) NOT NULL UNIQUE
 ) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+COLLATE utf8mb4_unicode_ci;
 
 -- 트레이너 권한 신청
 CREATE TABLE IF NOT EXISTS `trainer_applications` (
@@ -49,16 +78,21 @@ CREATE TABLE IF NOT EXISTS `trainer_applications` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-    
-    # 퇴사자의 경우
+
+# 퇴사자의 경우
 ) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+COLLATE utf8mb4_unicode_ci
 
 -- 트레이너 프로필
 CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     trainer_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    specialty ENUM('SLEEP', 'REHABILITATION', 'EXERCISE', 'PSYCHOLOGY') NOT NULL, 
+    specialty ENUM(
+        'SLEEP',
+        'REHABILITATION',
+        'EXERCISE',
+        'PSYCHOLOGY'
+    ) NOT NULL,
     -- 수면, 재활, 운동, 심리
     certificate TEXT,
     certification_date DATE, -- 자격증 취득일
@@ -68,17 +102,19 @@ CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Foreign Key (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 질병
 CREATE TABLE IF NOT EXISTS `diseases` (
     disease_id INT PRIMARY KEY AUTO_INCREMENT,
     disease_name VARCHAR(100) NOT NULL,
     disease_date DATE NOT NULL,
-    disease_status ENUM('ACTIVE', 'RECOVERED', 'CHRONIC') NOT NULL
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+    disease_status ENUM(
+        'ACTIVE',
+        'RECOVERED',
+        'CHRONIC'
+    ) NOT NULL
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 복용중인 약
 CREATE TABLE IF NOT EXISTS `medications` (
@@ -86,16 +122,14 @@ CREATE TABLE IF NOT EXISTS `medications` (
     disease_id INT,
     medication_name VARCHAR(100) NOT NULL,
     FOREIGN KEY (disease_id) REFERENCES diseases (disease_id)
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 알러지
 CREATE TABLE IF NOT EXISTS `allergies` (
     allergy_id INT AUTO_INCREMENT PRIMARY KEY,
     allergy_name VARCHAR(100) NOT NULL,
     reaction VARCHAR(100) NOT NULL
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- 건강기록
 CREATE TABLE IF NOT EXISTS `health_data` (
     health_data_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -115,16 +149,16 @@ CREATE TABLE IF NOT EXISTS `health_data` (
     FOREIGN KEY (disease_id) REFERENCES diseases (disease_id),
     FOREIGN KEY (medication_id) REFERENCES medications (medication_id),
     FOREIGN KEY (allergy_id) REFERENCES allergies (allergy_id)
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 문의
 CREATE TABLE IF NOT EXISTS `inquiries` (
     inquiry_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     trainer_id INT NOT NULL,
-    inquiry_content TEXT NOT NULL,
-    inquiry_response TEXT,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    response TEXT,
     # 수정 일시
     responsed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -132,7 +166,7 @@ CREATE TABLE IF NOT EXISTS `inquiries` (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id)
 ) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+COLLATE utf8mb4_unicode_ci;
 
 -- 게시글
 CREATE TABLE IF NOT EXISTS `posts` (
@@ -143,8 +177,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 문의 답변
 CREATE TABLE IF NOT EXISTS `comments` (
@@ -154,10 +187,9 @@ CREATE TABLE IF NOT EXISTS `comments` (
     content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    Foreign Key (post_id) REFERENCES posts(post_id),
-    Foreign Key (user_id) REFERENCES users(user_id)
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+    Foreign Key (post_id) REFERENCES posts (post_id),
+    Foreign Key (user_id) REFERENCES users (user_id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 수업 개설
 CREATE TABLE IF NOT EXISTS `class_open_applications` (
@@ -174,17 +206,20 @@ CREATE TABLE IF NOT EXISTS `class_open_applications` (
     ) NOT NULL,
     class_start_time TIME NOT NULL,
     class_end_time TIME NOT NULL,
-    approval_status ENUM('APPROVE', 'REJECT', 'PENDING') DEFAULT 'PENDING',
+    approval_status ENUM(
+        'APPROVE',
+        'REJECT',
+        'PENDING'
+    ) DEFAULT 'PENDING',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    subject_type ENUM(
+    category ENUM(
         'SLEEP',
         'REHABILITATION',
         'EXERCISE',
         'PSYCHOLOGY'
     ) NOT NULL,
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 학원 전체 시간표
 CREATE TABLE IF NOT EXISTS `timetables` (
@@ -194,8 +229,7 @@ CREATE TABLE IF NOT EXISTS `timetables` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 회원의 수업 신청
 CREATE TABLE IF NOT EXISTS `class_applications` (
@@ -205,7 +239,6 @@ CREATE TABLE IF NOT EXISTS `class_applications` (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 SHOW TABLES;
