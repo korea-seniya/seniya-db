@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     # 사용자 연락처 추가
     phone VARCHAR(20) NOT NULL UNIQUE,
     # 필드 설명 필요 (수강권 - 수정 필요 / 정규화) + 구구절절 필요
-    class_ticket INT NOT NULL DEFAULT 0, 
+    -- class_ticket INT NOT NULL DEFAULT 0, 
     # 사용자가 개설된 수업을 보고 신청할 때 사용하는 쿠폰
     # EX) 2025.6.12 수면치료 1번 강의장 - 트레이너 전창현
     #           신청 -> 쿠폰 1개 차감
@@ -32,10 +32,29 @@ CREATE TABLE IF NOT EXISTS `users` (
     Foreign Key (role_id) REFERENCES roles(role_id) ON DELETE CASCADE
 )CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
+-- --------------------------------------------------------------------
+# payments 결제 내역 테이블
 
-CREATE TABLE user_class_passes (
+CREATE TABLE payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL, -- 결제 금액
+    method ENUM('CARD', 'BANK_TRANSFER', 'KAKAO_PAY', 'NAVER_PAY', 'TOSS') NOT NULL, -- 결제 방법
+    status ENUM('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED') DEFAULT 'PENDING',
+    coupon_count INT NOT NULL DEFAULT 1, -- 구매한 수강권 수량 (1개 이상 반드시 구매)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- 결제 시 생성
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- 결제 상태 변경 시 생성
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+# 1) users ↔ payments   1:N (한 명의 사용자 → 여러 결제)
+# 2) payments ↔ user_class_passes   1:N (한 결제 → 여러 수강권)
+# 3) users ↔ user_class_passes   1:N (한 사용자 → 여러 수강권)
+-- --------------------------------------------------------------------
+CREATE TABLE passes (
     pass_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
+    payment_id INT NOT NULL,
     coupon_type ENUM('REGULAR', 'EVENT'),
     -- 발급일 및 만료일
     issued_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -43,7 +62,8 @@ CREATE TABLE user_class_passes (
     used BOOLEAN DEFAULT FALSE,
     -- 사용 여부 (해당 값이 TRUE가 될 때마다 users.class_ticket이 감소되는 트리거 설정)
     used_at DATETIME,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (payment_id) REFERENCES payments (payment_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- ---------------------------------------------
 DELIMITER $$
@@ -59,7 +79,7 @@ BEGIN
     END IF;
 END $$
 
-DELIMITER;
+DELIMITER ;
 -- ---------------------------------------------
 
 # 사용자 권한
@@ -197,13 +217,7 @@ CREATE TABLE IF NOT EXISTS `class_open_applications` (
     trainer_id INT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    day_of_week ENUM(
-        'MON',
-        'TUE',
-        'WED',
-        'THU',
-        'FRI'
-    ) NOT NULL,
+    class_date DATETIME NOT NULL,
     class_start_time TIME NOT NULL,
     class_end_time TIME NOT NULL,
     approval_status ENUM(
