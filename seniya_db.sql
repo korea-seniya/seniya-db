@@ -117,7 +117,6 @@ CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     certificate TEXT,
     certification_date DATE, -- 자격증 취득일
     experience_years INT, -- 경력(연차) 추가
-    profile_image VARCHAR(255),
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
