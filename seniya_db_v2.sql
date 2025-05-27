@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS upload_files (
     file_type VARCHAR(100),
     file_size BIGINT NOT NULL,
     target_id BIGINT NOT NULL,
-    target_type ENUM('PROFILE', 'POST') NOT NULL,
+    target_type ENUM('PROFILE', 'POST', 'NOTICE') NOT NULL,
     INDEX idx_target (target_type, target_id)
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
