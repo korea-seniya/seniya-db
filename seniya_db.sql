@@ -211,19 +211,15 @@ CREATE TABLE IF NOT EXISTS `comments` (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 수업 개설
-CREATE TABLE IF NOT EXISTS `class_open_applications` (
-    application_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `classes` (
+    class_id INT PRIMARY KEY AUTO_INCREMENT,
     trainer_id INT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    class_date DATETIME NOT NULL,
+    class_date DATETIME NOT NULL ,
     class_start_time TIME NOT NULL,
     class_end_time TIME NOT NULL,
-    approval_status ENUM(
-        'APPROVE',
-        'REJECT',
-        'PENDING'
-    ) DEFAULT 'PENDING',
+    class_room VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     category ENUM(
         'SLEEP',
@@ -234,24 +230,14 @@ CREATE TABLE IF NOT EXISTS `class_open_applications` (
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 학원 전체 시간표
-CREATE TABLE IF NOT EXISTS `timetables` (
-    timetable_id INT PRIMARY KEY AUTO_INCREMENT,
-    application_id INT NOT NULL,
-    classroom VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
 -- 회원의 수업 신청
-CREATE TABLE IF NOT EXISTS `class_applications` (
-    class_application_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `participations` (
+    participation_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    application_id INT NOT NULL,
+    class_id INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
+    FOREIGN KEY (class_id) REFERENCES classes (class_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS upload_files (
@@ -266,5 +252,6 @@ CREATE TABLE IF NOT EXISTS upload_files (
     target_type ENUM('PROFILE', 'POST') NOT NULL,
     
     INDEX idx_target (target_type, target_id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 SHOW TABLES;
