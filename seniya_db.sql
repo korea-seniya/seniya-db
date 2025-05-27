@@ -255,4 +255,17 @@ CREATE TABLE IF NOT EXISTS `class_applications` (
     FOREIGN KEY (application_id) REFERENCES class_open_applications (application_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS upload_files (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    original_name VARCHAR(255) NOT NULL, -- 사용자가 업로드한 원래 이름
+    file_name VARCHAR(255) NOT NULL, -- 서버에 저장된 이름
+    file_path VARCHAR(500) NOT NULL, -- 전체 경로 또는 상대 경로
+    file_type VARCHAR(100), -- MIME 타입 (image/png)
+    file_size BIGINT NOT NULL, -- 파일 크기(bytes)
+    
+    target_id BIGINT NOT NULL,
+    target_type ENUM('PROFILE', 'POST') NOT NULL,
+    
+    INDEX idx_target (target_type, target_id)
+);
 SHOW TABLES;
