@@ -188,31 +188,29 @@ CREATE TABLE IF NOT EXISTS `comments` (
 COLLATE utf8mb4_unicode_ci;
 
 -- 수업 개설
-CREATE TABLE IF NOT EXISTS `classes` (
-    class_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `courses` (
+    course_id INT PRIMARY KEY AUTO_INCREMENT,
     trainer_id INT NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    class_date DATETIME NOT NULL ,
-    class_start_time TIME NOT NULL,
-    class_end_time TIME NOT NULL,
-    class_room VARCHAR(255) NOT NULL,
+    course_date DATETIME NOT NULL ,
+    course_start_time TIME NOT NULL,
+    course_end_time TIME NOT NULL,
+    course_room VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     category ENUM('SLEEP', 'REHABILITATION', 'EXERCISE', 'PSYCHOLOGY') NOT NULL,
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 회원의 수업 신청
 CREATE TABLE IF NOT EXISTS `participations` (
     participation_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    class_id INT NOT NULL,
+    course_id INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (class_id) REFERENCES classes (class_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
+    FOREIGN KEY (course_id) REFERENCES courses (course_id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS upload_files (
 	id BIGINT AUTO_INCREMENT PRIMARY KEY,
