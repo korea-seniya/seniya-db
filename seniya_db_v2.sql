@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 COLLATE utf8mb4_unicode_ci;
 
 -- 결제 내역 테이블
-CREATE TABLE payments (
+CREATE TABLE IF NOT EXISTS payments (
     payment_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE payments (
 COLLATE utf8mb4_unicode_ci;
 
 -- 수강권
-CREATE TABLE passes (
+CREATE TABLE IF NOT EXISTS passes (
     pass_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     payment_id INT NOT NULL,
@@ -51,7 +51,7 @@ COLLATE utf8mb4_unicode_ci;
 
 DELIMITER $$
 CREATE TRIGGER reduce_class_ticket
-AFTER UPDATE ON user_class_passes
+AFTER UPDATE ON passes
 FOR EACH ROW
 BEGIN
     IF OLD.used = FALSE AND NEW.used = TRUE THEN
