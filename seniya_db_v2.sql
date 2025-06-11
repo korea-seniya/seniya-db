@@ -3,10 +3,21 @@ CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE `seniya_db`;
 
+-- 사용자 권한
+CREATE TABLE IF NOT EXISTS `roles` (
+    role_id INT PRIMARY KEY AUTO_INCREMENT,
+    role_name VARCHAR(255) NOT NULL UNIQUE
+) CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+INSERT INTO roles VALUES (1, "ADMIN");
+INSERT INTO roles VALUES (2, "USER");
+INSERT INTO roles VALUES (3, "TRAINER");
+
 -- 사용자
 CREATE TABLE IF NOT EXISTS `users` (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
-    role_id INT NOT NULL,
+    role_id INT DEFAULT 1,
     username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(20) NOT NULL,
@@ -63,12 +74,6 @@ END $$
 
 DELIMITER ;
 
--- 사용자 권한
-CREATE TABLE IF NOT EXISTS `roles` (
-    role_id INT PRIMARY KEY AUTO_INCREMENT,
-    role_name VARCHAR(255) NOT NULL UNIQUE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
 
 -- 트레이너 권한 신청
 CREATE TABLE IF NOT EXISTS `trainer_applications` (
