@@ -17,7 +17,7 @@ INSERT INTO roles VALUES (3, "TRAINER");
 -- 사용자
 CREATE TABLE IF NOT EXISTS `users` (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
-    role_id INT DEFAULT 1,
+    role_id INT NOT NULL,
     username VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(20) NOT NULL,
@@ -154,12 +154,12 @@ COLLATE utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `inquiries` (
     inquiry_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    trainer_id INT NOT NULL,
+    trainer_id INT,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     response TEXT,
-    # 수정 일시
     responsed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    isPrivate BOOLEAN DEFAULT false,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
@@ -231,3 +231,4 @@ CREATE TABLE IF NOT EXISTS upload_files (
 COLLATE utf8mb4_unicode_ci;
 
 SHOW TABLES;
+
