@@ -79,7 +79,7 @@ DELIMITER ;
 CREATE TABLE IF NOT EXISTS `trainer_applications` (
     application_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    apply_date DATE,
+    applied_date DATE,
     approval_status ENUM('APPROVE', 'REJECT', 'PENDING', 'QUIT') DEFAULT 'PENDING',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -203,6 +203,7 @@ CREATE TABLE IF NOT EXISTS `courses` (
     course_end_time TIME NOT NULL,
     course_room VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     category ENUM('SLEEP', 'REHABILITATION', 'EXERCISE', 'PSYCHOLOGY') NOT NULL,
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -232,3 +233,4 @@ COLLATE utf8mb4_unicode_ci;
 
 SHOW TABLES;
 
+select * from users;
