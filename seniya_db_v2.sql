@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS `trainer_applications` (
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
+SELECT * from trainer_applications;
+
 -- 트레이너 프로필
 CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     trainer_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -229,6 +231,18 @@ CREATE TABLE IF NOT EXISTS upload_files (
     target_type ENUM('PROFILE', 'POST', 'NOTICE') NOT NULL,
     INDEX idx_target (target_type, target_id)
 ) CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+-- 공지사항
+create table if not exists `notices` (
+    notice_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    foreign key(user_id) references users (user_id) ON DELETE CASCADE
+)CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
 SHOW TABLES;
