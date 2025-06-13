@@ -79,13 +79,15 @@ DELIMITER ;
 CREATE TABLE IF NOT EXISTS `trainer_applications` (
     application_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    apply_date DATE,
+    applied_date DATE,
     approval_status ENUM('APPROVE', 'REJECT', 'PENDING', 'QUIT') DEFAULT 'PENDING',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
+
+SELECT * from trainer_applications;
 
 -- 트레이너 프로필
 CREATE TABLE IF NOT EXISTS `trainer_profiles` (
@@ -203,6 +205,7 @@ CREATE TABLE IF NOT EXISTS `courses` (
     course_end_time TIME NOT NULL,
     course_room VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     category ENUM('SLEEP', 'REHABILITATION', 'EXERCISE', 'PSYCHOLOGY') NOT NULL,
     FOREIGN KEY (trainer_id) REFERENCES trainer_profiles (trainer_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -230,5 +233,18 @@ CREATE TABLE IF NOT EXISTS upload_files (
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
+-- 공지사항
+create table if not exists `notices` (
+    notice_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    foreign key(user_id) references users (user_id) ON DELETE CASCADE
+)CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
 SHOW TABLES;
 
+select * from users;
