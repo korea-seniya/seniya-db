@@ -74,6 +74,39 @@ END $$
 
 DELIMITER ;
 
+-- payment 승인 후 자동으로 pass 생성
+DELIMITER $$
+CREATE TRIGGER create_passes_after_payment_success
+AFTER UPDATE ON payments
+FOR EACH ROW
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    
+    IF OLD.status != 'SUCCESS' AND NEW.status = 'SUCCESS' THEN
+    
+    WHILE i < NEW.coupon_count DO
+            INSERT INTO passes (
+                user_id,
+                payment_id,
+                coupon_type,
+                issued_at,
+                expires_at,
+                used
+            )
+            VALUES (
+                NEW.user_id,
+                NEW.payment_id,
+                'REGULAR',
+                NOW(),
+                DATE_ADD(NOW(), INTERVAL 30 DAY),
+                FALSE
+            );
+            SET i = i + 1;
+        END WHILE;
+        END IF;
+	END $$
+    
+DELIMITER ;
 
 -- 트레이너 권한 신청
 CREATE TABLE IF NOT EXISTS `trainer_applications` (
