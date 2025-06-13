@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `inquiries` (
     content TEXT NOT NULL,
     response TEXT,
     responsed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    isPrivate BOOLEAN DEFAULT false,
+    is_privated BOOLEAN DEFAULT false,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
@@ -248,3 +248,5 @@ COLLATE utf8mb4_unicode_ci;
 SHOW TABLES;
 
 select * from users;
+
+select * from inquiries;
