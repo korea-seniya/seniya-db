@@ -143,7 +143,9 @@ CREATE TABLE IF NOT EXISTS `diseases` (
     disease_id INT PRIMARY KEY AUTO_INCREMENT,
     disease_name VARCHAR(100) NOT NULL,
     disease_date DATE NOT NULL,
-    disease_status ENUM('ACTIVE', 'RECOVERED', 'CHRONIC') NOT NULL
+    disease_status ENUM('ACTIVE', 'RECOVERED', 'CHRONIC') NOT NULL,
+    health_data_id BIGINT,
+    FOREIGN KEY (health_data_id) REFERENCES health_data (health_data_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
@@ -152,6 +154,8 @@ CREATE TABLE IF NOT EXISTS `medications` (
     medication_id INT AUTO_INCREMENT PRIMARY KEY,
     disease_id INT,
     medication_name VARCHAR(100) NOT NULL,
+    health_data_id BIGINT,
+    FOREIGN KEY (health_data_id) REFERENCES health_data (health_data_id) ON DELETE CASCADE,
     FOREIGN KEY (disease_id) REFERENCES diseases (disease_id)
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
@@ -160,29 +164,25 @@ COLLATE utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `allergies` (
     allergy_id INT AUTO_INCREMENT PRIMARY KEY,
     allergy_name VARCHAR(100) NOT NULL,
-    reaction VARCHAR(100) NOT NULL
+    reaction VARCHAR(100) NOT NULL,
+    health_data_id BIGINT,
+    FOREIGN KEY (health_data_id) REFERENCES health_data (health_data_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
 -- 건강기록
 CREATE TABLE IF NOT EXISTS `health_data` (
-    health_data_id INT PRIMARY KEY AUTO_INCREMENT,
+    health_data_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     height FLOAT NOT NULL,
     weight FLOAT NOT NULL,
     body_fat_percentage FLOAT,
     blood_pressure ENUM('LOW', 'NORMAL', 'HIGH'),
-    disease_id INT,
-    medication_id INT,
-    allergy_id INT,
     smoking BOOLEAN NOT NULL DEFAULT FALSE,
     drinking BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (disease_id) REFERENCES diseases (disease_id),
-    FOREIGN KEY (medication_id) REFERENCES medications (medication_id),
-    FOREIGN KEY (allergy_id) REFERENCES allergies (allergy_id)
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
@@ -255,15 +255,17 @@ CREATE TABLE IF NOT EXISTS `participations` (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS upload_files (
-	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    upload_file_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     original_name VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_path VARCHAR(500) NOT NULL,
     file_type VARCHAR(100),
     file_size BIGINT NOT NULL,
-    target_id BIGINT NOT NULL,
-    target_type ENUM('PROFILE', 'POST', 'NOTICE') NOT NULL,
-    INDEX idx_target (target_type, target_id)
+    post_id INT NULL,
+    target_id BIGINT,
+    target_type ENUM('PROFILE', 'POST', 'NOTICE'),
+    INDEX idx_target (target_type, target_id),
+    CONSTRAINT fk_upload_files_post FOREIGN KEY (post_id) REFERENCES posts(post_id)
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
@@ -282,5 +284,3 @@ COLLATE utf8mb4_unicode_ci;
 SHOW TABLES;
 
 select * from users;
-
-select * from inquiries;
