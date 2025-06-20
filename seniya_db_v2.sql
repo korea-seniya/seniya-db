@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS `seniya_db`
 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE `seniya_db`;
+-- DROP DATABASE `seniya_db`;
 
 -- 사용자 권한
 CREATE TABLE IF NOT EXISTS `roles` (
@@ -128,13 +129,38 @@ CREATE TABLE IF NOT EXISTS `trainer_profiles` (
     trainer_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     specialty ENUM('SLEEP', 'REHABILITATION', 'EXERCISE', 'PSYCHOLOGY') NOT NULL,
-    certificate TEXT,
-    certification_date DATE,
     experience_years INT,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Foreign Key (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+-- 자격증
+CREATE TABLE IF NOT EXISTS `certificates` (
+    certificate_id INT PRIMARY KEY AUTO_INCREMENT,
+    trainer_id INT NOT NULL,
+    certificate TEXT NOT NULL,
+    certification_date DATE NOT NULL,
+    Foreign Key (trainer_id) REFERENCES trainer_profiles(trainer_id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+
+-- 건강기록
+CREATE TABLE IF NOT EXISTS `health_data` (
+    health_data_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    height FLOAT NOT NULL,
+    weight FLOAT NOT NULL,
+    body_fat_percentage FLOAT,
+    blood_pressure ENUM('LOW', 'NORMAL', 'HIGH'),
+    smoking BOOLEAN NOT NULL DEFAULT FALSE,
+    drinking BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
@@ -170,21 +196,6 @@ CREATE TABLE IF NOT EXISTS `allergies` (
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
--- 건강기록
-CREATE TABLE IF NOT EXISTS `health_data` (
-    health_data_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    height FLOAT NOT NULL,
-    weight FLOAT NOT NULL,
-    body_fat_percentage FLOAT,
-    blood_pressure ENUM('LOW', 'NORMAL', 'HIGH'),
-    smoking BOOLEAN NOT NULL DEFAULT FALSE,
-    drinking BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-) CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
 
 -- 문의
 CREATE TABLE IF NOT EXISTS `inquiries` (
@@ -215,7 +226,7 @@ CREATE TABLE IF NOT EXISTS `posts` (
 ) CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
--- 문의 답변
+-- 게시글 댓글
 CREATE TABLE IF NOT EXISTS `comments` (
     comment_id INT PRIMARY KEY AUTO_INCREMENT,
     post_id INT NOT NULL,
@@ -280,7 +291,3 @@ create table if not exists `notices` (
     foreign key(user_id) references users (user_id) ON DELETE CASCADE
 )CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
-
-SHOW TABLES;
-
-select * from users;
