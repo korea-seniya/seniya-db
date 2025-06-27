@@ -292,3 +292,5 @@ create table if not exists `notices` (
     foreign key(user_id) references users (user_id) ON DELETE CASCADE
 )CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
+
+
